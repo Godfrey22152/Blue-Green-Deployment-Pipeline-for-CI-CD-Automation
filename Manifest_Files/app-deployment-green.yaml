@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: trainbook-app
-        image: godfrey22152/trainbooking-app:green # Adjust the image tag for the green version
+        image: godfrey22152/trainbook-app:green # Adjust the image tag for the green version
         ports:
         - containerPort: 8080
         env:
