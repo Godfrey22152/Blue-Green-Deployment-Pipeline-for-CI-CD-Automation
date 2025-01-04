@@ -3,7 +3,6 @@ kind: Ingress
 metadata:
   annotations:
   name: trinbook-ingress
-  namespace: webapps
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
