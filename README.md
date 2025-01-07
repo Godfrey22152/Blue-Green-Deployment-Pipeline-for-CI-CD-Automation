@@ -1,23 +1,23 @@
-
-# DevSecFlow-CI-CD-Pipeline: Train Ticket Reservation System - CI/CD Pipeline
+# Smart Traffic Switching: A Blue-Green Deployment Solution Using CI/CD Automation
 
 ## Table of Contents
 1. [Overview](#overview)
-2. [Features](#features)
+2. [CI/CD Pipeline Features](#cicd-pipeline-features)
 3. [Prerequisites](#prerequisites)
 4. [Technologies Used](#technologies-used)
 5. [Infrastructure Setup](#infrastructure-setup)
    - [AWS EC2 Instance for Jenkins, SonarQube, and Nexus](#aws-ec2-instance-for-jenkins-sonarqube-and-nexus)
    - [EKS Cluster Setup](#eks-cluster-setup)
    - [Service Account & Secrets for Jenkins](#service-account--secrets-for-jenkins)
-   - [Private DockerHub Repository & Regcred Secret](#private-dockerhub-repository--regcred-secret)
-6. [Pipeline Setup](#pipeline-setup)
-7. [Screenshots](#screenshots)
+6. [Pipeline Details](#pipeline-details)
+7. [How to Use](#how-to-use)
+8. [Troubleshooting](#troubleshooting)
+9. [Contributing](#contributing)
 
 ## Overview
-The **Train Ticket Reservation System** is a web-based application designed to simplify the process of booking train tickets and gathering information related to train schedules, seat availability, and fare inquiries. The application allows users to register, view available trains, check seat availability, book tickets, and view booking history. Additionally, the application offers an admin interface for managing train schedules, updating train information, and handling reservations.
 
-The project employs a robust **CI/CD pipeline** for continuous integration and deployment using Jenkins, Docker, Kubernetes (EKS), SonarQube, and Nexus. It includes automated testing, static code analysis, file system scanning, image scanning, automatic image tag updation in deployment file, deployment to an EKS cluster, and email notification features. The infrastructure is provisioned using Terraform, and private DockerHub repositories are utilized for securely managing application images.
+### Project Application Overview
+The project application **Train Ticket Reservation System** is a web-based application designed to simplify the process of booking train tickets and gathering information related to train schedules, seat availability, and fare inquiries. The application allows users to register, view available trains, check seat availability, book tickets, and view booking history. Additionally, the application offers an admin interface for managing train schedules, updating train information, and handling reservations.
 
 ### Application Key Features:
 - Train schedules and availability viewing.
@@ -25,45 +25,46 @@ The project employs a robust **CI/CD pipeline** for continuous integration and d
 - Admin management of train schedules.
 - Login, logout, and profile management.
 
-### CI/CD Pipeline Features:
-- Automated creation of service account and secrets for Jenkins in the EKS cluster.
-- Email notifications for successful or failed builds.
-- Docker image scanning with Trivy.
-- Automatic update of image tags in Kubernetes deployment files.
-- Private DockerHub repository for build images.
-- Integration with SonarQube for code quality checks.
+### Project Overview
+The **Smart Traffic Switching: A Blue-Green Deployment Solution** is designed to automate the deployment of applications using the Blue-Green deployment strategy. It ensures zero-downtime deployments by maintaining two environments: Blue and Green, allowing smooth traffic switching between them.
 
+The pipeline builds, tests, scans, packages, and deploys the application to Kubernetes while adhering to best CI/CD practices.
 
-## Features
+---
+## CI/CD Pipeline Features
+- **Parameterization**: Select deployment environment (`blue` or `green`) and Docker image tag.
+- **Service Account and Secrets Automation:** A script automates the creation of service accounts and secrets for Jenkins to securely connect to the EKS cluster.
+- **Code Compilation and Testing**: Compiles and tests the application using Maven.
+- **Security Scanning**: Conducts filesystem and Docker image scans using Trivy.
+- **Static Code Analysis**: Integrates SonarQube for code quality checks.
+- **Artifact Management**: Publishes artifacts to a Maven repository.
+- **Docker Image Management**: Builds, scans, and pushes Docker images to DockerHub.
+- **Kubernetes Deployments**: Deploys services, secrets, ingress, and application pods to a Kubernetes cluster.
+- **Traffic Management**: Switches traffic seamlessly between Blue and Green environments.
+- **Email Notifications**: Sends build status emails with detailed deployment information.
+- **Infrastructure as Code (IaC) with Terraform:** Terraform scripts for automating the provisioning of AWS resources like EC2 instances and EKS clusters.
 
-1. **Automated CI/CD Pipeline**:
-- Integrated Jenkins pipeline that handles code compilation, testing, static analysis with SonarQube, and container security scanning with Trivy.
-- Automatic deployment of application updates to an EKS cluster.
+---
+## Technologies Used
+- **Jenkins**: For orchestrating the CI/CD pipeline.
+- **Maven**: For building and testing the Java application.
+- **Docker**: For containerization of the application.
+- **Trivy**: For security scanning of filesystem and Docker images.
+- **SonarQube**: For static code analysis.
+- **Kubernetes**: For deploying and managing application pods and services.
+- **Nginx**: As the ingress controller for traffic routing.
+- **Nexus**: Used as an artifact repository to store and manage the application's build artifacts.
 
-2. **DockerHub Integration**:
-- Builds application Docker images and publishes them to a private DockerHub repository.
-- Automates updating the deployment manifest with the new Docker image tag for Kubernetes deployment.
-
-3. **Email Notification System**:
-- Jenkins sends email notifications after every build to notify of success or failure. This includes build status details and a link to the console output.
-
-4. **Service Account and Secrets Automation**:
-- A script automates the creation of service accounts and secrets for Jenkins to securely connect to the EKS cluster.
-
-5. **Infrastructure as Code (IaC) with Terraform**:
-- Terraform scripts for automating the provisioning of AWS resources like EC2 instances and EKS clusters.
-
-
+---
 ## Prerequisites
-To run this project, you need the following:
-- Jenkins server configured with Docker, Maven, and necessary plugins.
-- AWS account for EC2 and EKS resources.
+- AWS account for EC2 and EKS resources. Or any other cloud services (GCP, Azure, etc).
 - Terraform installed for provisioning infrastructure.
+- Jenkins installed in a server and configured with Docker, Trivy, Maven, and [necessary plugins](#installed-jenkins-plugins).
 - SonarQube and Nexus running as Docker containers in EC2 Instances.
-- A private DockerHub repository for hosting container images.
+- Kubernetes cluster with appropriate credentials (`k8-cred`) and namespace (`webapps`).
 - Distribution Management Configuration in `pom.xml` file.
-  
-     - Ensure to add your Nexus server public Ip here `http://<nexus-server-pulic-ip>:8081` in this section of the `pom.xml` file
+     
+     - Update the `pom.xml` file to add your **Nexus server public Ip** `http://<nexus-server-pulic-ip>:8081` in this section of the `pom.xml` file as shown below:
        ```bash
        <!-- Configuration to Deploy both snapshot and releases to Nexus -->
        <distributionManagement>
@@ -79,16 +80,6 @@ To run this project, you need the following:
            </snapshotRepository>
        </distributionManagement>
        ```
-
-## Technologies Used
-- Jenkins: For automating the CI/CD pipeline.
-- Docker: Containerization of applications and SonarQube, Nexus services.
-- Kubernetes (EKS): Container orchestration.
-- SonarQube: For static code analysis.
-- Nexus: Repository manager for storing artifacts.
-- Terraform: For provisioning infrastructure as code (IaC).
-- Maven: For Java application builds and dependency management.
-- Trivy: For scanning Docker images for vulnerabilities.
 
 
 ---
@@ -245,7 +236,7 @@ Access running `Jenkins` and complete the setup over the browser using the EC2 I
 
 
 ### CD: EKS Cluster Setup
-Refer to the repository and guide [here](https://github.com/Godfrey22152/Automated-EKS-Cluster-Deployment-Pipeline/tree/main/aws_eks_terraform_files) for setting up your EKS cluster using terraform. 
+Refer to the repository and guide **[here](https://github.com/Godfrey22152/Automated-EKS-Cluster-Deployment-Pipeline/tree/main/aws_eks_terraform_files)** for setting up your EKS cluster using terraform. 
  
 - **Before you run the terraform scripts**: 
 Ensure you have `terraform`, `AWS CLI`, and `kubectl` installed on the server which you will use to create the cluster:
@@ -293,30 +284,35 @@ aws eks --region eu-west-1 update-kubeconfig --name odo-eks-cluster
 
 ### Service Account & Secrets for Jenkins
 Create a `service account` in the `webapps` `Namespace` and necessary `secrets` for Jenkins to connect to the EKS cluster:
-Use the provided scripts in the `Jenkins_ServiceAccount_RBAC_Scripts` folder for automating service account and secret creation. You can refer to the detailed `README.md` inside the folder.
-- Run the automated script `create_jenkins_rbac.sh` available in the Jenkins_ServiceAccount_RBAC_Scripts folder in the repository.
+Use the provided scripts in the **[Jenkins_ServiceAccount_RBAC_Scripts](./Jenkins_ServiceAccount_RBAC_Scripts)** folder for automating service account and secret creation. You can refer to the detailed `README.md` inside the folder.
+- Run the automated script `create_jenkins_rbac.sh` available in the `Jenkins_ServiceAccount_RBAC_Scripts` folder in the repository.
 - After creating the secrets, copy the secret as displayed on the screen, add them to Jenkins by navigating to `Manage Jenkins` > `Credentials`. (Select `secret text` and paste the secret)
-
-### Private DockerHub Repository & Regcred Secret
-1. Create a DockerHub `private` repository to store your Docker images.
-2. Create the `regcred` secret in your EKS cluster to allow Kubernetes to pull images from DockerHub:
-   ```bash
-   kubectl create secret docker-registry regcred      --docker-server=https://index.docker.io/v1/      --docker-username=your-username      --docker-password=your-password      --namespace=webapps
-   ```
-   This secret ensures that Kubernetes can securely pull private images from DockerHub.
 
 ---
 
 ## [CI Pipeline Setup](./jenkins-pipeline)
-This stage covers installation, required plugins, configuring global tools, credentials, and Jenkins job setup.
-The Jenkins pipeline includes stages for compiling, testing, code analysis, app builds, image builds and scanning, updating docker-tag, deploying to the setup EKS cluster, and Email notification of the builds.
+
+This Jenkins pipeline is designed to automate the entire CI/CD process for deploying applications using the Blue-Green deployment strategy. Below is an overview of the key stages in the pipeline:
+
+1. **Git Checkout**: Clones the application's source code from the specified GitHub repository.
+2. **Code Compile and Test**: Compiles the application using Maven and runs unit tests to ensure code quality and functionality.
+3. **Security Scanning**: Performs filesystem and Docker image vulnerability scans using Trivy to ensure a secure deployment.
+4. **Static Code Analysis**: Integrates SonarQube to evaluate the codebase for quality, maintainability, and security issues.
+5. **Artifact Management**: Packages the application and publishes the build artifacts to a Nexus repository for version control and management.
+6. **Docker Image Management**: Builds, tags, scans, and pushes Docker images to DockerHub for containerized deployment.
+7. **Kubernetes Deployment**: Deploys the application's secrets, services, ingress, and pods to the Kubernetes cluster.
+8. **Blue-Green Traffic Management**: Manages traffic routing between Blue and Green environments to enable zero-downtime deployments.
+9. **Deployment Verification**: Verifies that the application has been successfully deployed and is running in the specified environment.
+10. **Email Notifications**: Sends detailed email updates about the build and deployment status to the configured recipients.
+
+Each stage is designed to ensure a seamless, secure, and efficient CI/CD workflow with zero-downtime deployments.
 
 ### Plugins used in the Jenkins Pipeline:
 - **Docker Pipeline**
 - **Docker**
-- **Eclipse Temurin Installer** (for JDK 17)
+- **Eclipse Temurin Installer** (For using different versions of JDK, configured JDK 17)
 - **SonarQube Scanner**
-- **Config File Provider**
+- **Config File Provider** (Needed to configure Nexus artifact repository)
 - **Maven Integration**
 - **Pipeline Maven Integration**
 - **Kubernetes**
@@ -328,7 +324,6 @@ The Jenkins pipeline includes stages for compiling, testing, code analysis, app 
 - **For a detailed guide on setting up the CI pipeline, refer to the `README.md` file in the [jenkins-pipeline](./jenkins-pipeline/README.md) folder**. 
 
 ---
-
 ## Screenshots
 
 ### 1. Deployed TrainBooking application Images.
@@ -360,5 +355,10 @@ The Jenkins pipeline includes stages for compiling, testing, code analysis, app 
 
 ![Failed Build](screenshots/failure.jpg) 
 
+## Troubleshooting
+- **Pipeline Errors**: Check the Jenkins console logs for detailed error messages.
+- **Deployment Failures**: Verify Kubernetes resources and logs for troubleshooting.
+- **Email Notifications**: Ensure SMTP settings are correctly configured in Jenkins.
 
-
+## Contributing
+Contributions are welcome! Feel free to open issues or submit pull requests.
