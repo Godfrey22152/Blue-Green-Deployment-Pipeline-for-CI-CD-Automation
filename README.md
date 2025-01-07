@@ -59,7 +59,7 @@ The pipeline builds, tests, scans, packages, and deploys the application to Kube
 ## Prerequisites
 - AWS account for EC2 and EKS resources. Or any other cloud services (GCP, Azure, etc).
 - Terraform installed for provisioning infrastructure.
-- Jenkins installed in a server and configured with Docker, Trivy, Maven, and [necessary plugins](#installed-jenkins-plugins).
+- Jenkins installed in a server and configured with Docker, Trivy, Maven, and [necessary plugins](#plugins-used-in-the-jenkins-pipeline).
 - SonarQube and Nexus running as Docker containers in EC2 Instances.
 - Kubernetes cluster with appropriate credentials (`k8-cred`) and namespace (`webapps`).
 - Distribution Management Configuration in `pom.xml` file.
