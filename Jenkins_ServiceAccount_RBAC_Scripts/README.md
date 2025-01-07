@@ -56,6 +56,12 @@ This repository contains the necessary scripts and configurations to automate th
         - serviceaccounts
         - services
         verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    
+     - apiGroups: ["networking.k8s.io"]
+       resources:
+       - ingresses
+       verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+        
     ```
 
   - **RoleBinding**: `app-rolebinding`, binding the role to the `jenkins` ServiceAccount.
