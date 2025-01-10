@@ -6,7 +6,7 @@
 3. [Prerequisites](#prerequisites)
 4. [Technologies Used](#technologies-used)
 5. [Infrastructure Setup](#infrastructure-setup)
-   - [AWS EC2 Instance for Jenkins, SonarQube, and Nexus](#ci:-aws-ec2-instance-for-jenkins-sonarQube-and-nexus)
+   - [AWS EC2 Instance for Jenkins, SonarQube, and Nexus](#aws-ec2-instance-for-jenkins-sonarQube-and-nexus)
    - [EKS Cluster Setup](#eks-cluster-setup)
    - [Service Account & Secrets for Jenkins](#service-account--secrets-for-jenkins)
 6. [Pipeline Details](#pipeline-details)
