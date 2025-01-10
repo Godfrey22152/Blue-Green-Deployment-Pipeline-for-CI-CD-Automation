@@ -1,15 +1,33 @@
 
-# Jenkins Pipeline Setup Guide for the DevSecFlow Project
+# Jenkins Pipeline Setup Guide for Smart Traffic Switching: A Blue-Green Deployment Solution
 
-This guide will walk you through setting up a Jenkins pipeline from scratch, including initial Jenkins setup, plugin installation, and configuration for DevSecFlow's CI/CD pipeline. The pipeline will automate code compilation, testing, security scans, artifact publishing, Docker image management, Kubernetes deployment, and Email notification.
+This guide will walk you through setting up the Jenkins pipeline from scratch, including initial Jenkins setup, plugin installation, and configuration for Smart Traffic Switching of the Trainbooking application. The pipeline is designed for a Blue-Green Deployment strategy, ensuring seamless updates with minimal downtime.
 
 ---
 
 ## Prerequisites
 
-- The EC2 server setup running Jenkins, with Java, Docker, and Trivy installed and accessible over the browser.
-- Necessary credentials: Git, DockerHub, SonarQube token, Email, and Kubernetes (K8s) cluster access through service account.
-- Internet access for plugin installations.
+1. **Jenkins Installed and Configured**:
+   - An EC2 server setup running Jenkins, with Java, Docker, and Trivy installed and accessible over the browser. Kind see **[Infrastructure Setup](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution#infrastructure-setup)** in the project `README` for a detailed guide.
+   - Install necessary plugins: `Docker Pipeline`, `Docker`, `Eclipse Temurin Installer`, `SonarQube Scanner`, `Config File Provider`, `Maven Integration`, `Pipeline Maven Integration`, `Kubernetes Credentials`, `Kubernetes CLI`, `Kubernetes Client API`, `Kubernetes` and `Pipeline: Stage View`.
+
+2. **Credentials Setup**:
+   - `git-cred`: GitHub credentials to access the repository.
+   - `docker-cred`: DockerHub credentials for pushing Docker images.
+   - `k8-cred`: Kubernetes Secret credential to access the cluster through service account.
+   - `sonar-server`: SonarQube server configuration Token.
+   - `email-cred`: Gmail app-password for Email Notification.
+
+3. **[Tools Installed on Jenkins Node](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/README.md#infrastructure-setup)**:
+   - Java Development Kit (JDK 17).
+   - Maven (version 3 or later).
+   - Trivy for scanning filesystem and Docker images.
+   - Docker CLI and Kubernetes CLI (`kubectl`).
+   - Kind see **[Infrastructure Setup](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/README.md#infrastructure-setup)** in the project `README` for a detailed guide.
+
+4. **[Kubernetes Cluster](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/README.md#cd--eks-cluster-setup)**:
+   - A cluster set up with **[Service Account](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/Jenkins_ServiceAccount_RBAC_Scripts)** to allow Jenkins Access.
+   - Install Nginx ingress controller.
 
 ---
 
