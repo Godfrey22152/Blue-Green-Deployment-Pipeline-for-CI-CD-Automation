@@ -193,7 +193,7 @@ This completes the credential setup in Jenkins for Git, SonarQube, Docker, Kuber
 - Uncomment the server section in the content box and add your Nexus  server credential details: 
 
 ```bash
-<server>
+    <server>
       <id>maven-releases</id>
       <username>admin</username>
       <password>odo</password>
@@ -254,36 +254,80 @@ You are expected to generate google app passwords for the GMAIL Email Notificati
 
 ### 1. Create a New Pipeline
 1. From the Jenkins dashboard, click on **New Item**.
-2. Enter a name for your pipeline `TrainBooking-App` and select **Pipeline**. Click **OK**. 
+2. Enter a name for your pipeline `Smart-Traffic-Switching-A-Blue-Green-Deployment` and select **Pipeline**. Click **OK**.
 
 ### 2. Configure the Pipeline Script 
 1. In the pipeline configuration page, scroll to **Discard old builds**, select the number of **Days to keep builds**, also enter the `2` or any number you like for the **Max # of builds to keep**.
 2. In the pipeline configuration page, scroll to the **Pipeline** section.
-3. Choose **Pipeline script** and enter the Jenkinsfile script in `**Jenkinsfile**`in the folder.
+3. **Pipeline Definition**:
+      - Copy and paste the pipeline script provided in this guide into the **Pipeline Script** section.
+      - Choose **Pipeline script** and enter the **[Jenkinsfile script](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/Jenkinsfile)**.
 
+### 3. Pipeline Configuration
 
-### 3. Pipeline Stages and Explanation
+#### 1. **Define Pipeline Parameters**
+The following parameters allow customization:
+- **DEPLOY_ENV**: Select the environment to deploy (`blue` or `green`).
+- **DOCKER_TAG**: Docker image tag (`blue` or `green`).
+- **SWITCH_TRAFFIC**: Boolean to toggle traffic switching.
 
-The pipeline contains the following stages:
+#### 2. **Stages in the Pipeline**
+##### a. **Git Checkout**
+   - Clones the repository from the main branch.
 
-- **Clear Workspace** - Removes existing files in the workspace to ensure a clean environment.
-- **Git Checkout** - Clones the project’s code repository to the workspace.
-- **Code Compile** - Compiles the source code to ensure it is executable.
-- **Test** - Runs unit tests to validate code functionality and catch errors.
-- **Trivy FS Scan** - Scans the file system for security vulnerabilities and outputs result in a html format.
-- **SonarQube Analysis** - Analyzes code quality, maintainability, and technical debt using SonarQube.
-- **Build** - Packages the application into an artifact for deployment.
-- **Publish Artifacts** - Publishes built artifacts to a Maven repository for version control.
-- **Docker Build and Tag** - Builds a Docker image and tags it with a version for deployment.
-- **Docker Image Scan by Trivy** - Scans the Docker image for any security vulnerabilities.
-- **Publish Docker Image to Private DockerHub Repository** - Pushes the tagged Docker image to DockerHub.
-- **Update Docker Tag in the Manifest File** - Updates the Kubernetes deployment manifest with the latest image tag.
-- **Deploy to K8s-Cluster** - Deploys the application to the Kubernetes cluster.
-- **Verify Deployment** - Checks the status of the deployment in Kubernetes to ensure successful deployment.
-- **E-mail Notification** - Sends out Email notification for successful or failed builds.
+##### b. **Code Compile**
+   - Compiles the code using Maven. 
 
+##### c. **Test**
+   - Runs unit tests using Maven.
 
-### 4. Pipeline Stage Code Generation using Pipeline Syntax
+##### d. **Trivy Filesystem Scan**
+   - Scans the project directory for vulnerabilities and outputs result in a html format.
+
+##### e. **SonarQube Analysis**
+   - Performs static code analysis using SonarQube.
+
+##### f. **Build**
+   - Packages the application into a deployable format.
+
+##### g. **Publish Artifacts**
+   - Deploys artifacts to a repository.
+
+##### h. **Docker Build and Tag**
+   - Builds a Docker image and tags it with the specified tag.
+
+##### i. **Docker Image Scan by Trivy**
+   - Scans the Docker image for vulnerabilities.
+
+##### j. **Push Docker Image to DockerHub**
+   - Pushes the image to the DockerHub repository.
+
+##### k. **Deploy Kubernetes Secrets, Services, and Ingress**
+   - Applies YAML manifests for secrets, services, and ingress.
+
+##### l. **Deploy to Kubernetes**
+   - Deploys the application based on the selected environment (`blue` or `green`).
+
+##### m. **Switch Traffic Between Blue & Green Environment**
+   - Switches traffic to the specified environment using a service patch.
+
+##### n. **Verify Deployment**
+   - Verifies the deployment status and retrieves resource details.
+
+---
+#### 3. Email Notifications
+The pipeline includes an email notification step, sending a summary of the build and deployment status.
+
+##### Configuration
+- Update the `from` and `to` fields in the email notification block.
+
+---
+
+### The Pipeline Code
+Refer to the full pipeline code [here](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/Jenkinsfile).
+
+---
+### >NOTE: Pipeline Stage Code Generation using Pipeline Syntax
 
 To generate code for each pipeline stage in Jenkins, use the **Pipeline Syntax** tool. This tool provides a user-friendly interface to create pipeline snippets for various steps, which you can then copy and paste into your pipeline script.
 
@@ -314,22 +358,34 @@ To execute the pipeline in Jenkins, follow these streamlined steps:
 1. **Verify Setup and Configuration**
    - Ensure all plugins are installed, including Git, Maven, Docker, Trivy, SonarQube, and Kubernetes CLI.
    - Check that credentials (`git-cred`, `sonar-token`, `docker-cred`, `k8-cred`, `email-cred`) are configured.
+     
+2. **Ensure all Necessary Manifest Files are added and updated**  
+   - Ensure the Kubernetes manifest files are available in the `Manifest_Files` directory of the Git repository:
+     - `app-deployment-blue.yaml`
+     - `app-deployment-green.yaml`
+     - `trainbook-secrets.yaml`
+     - `trainbook-service.yaml`
+     - `trainbook-ingress.yaml`
 
-2. **Trigger the Pipeline**
-   - To start the pipeline, go to the `TrainBooking-App`job page and click **Build with Parameters**.
-   - Select your preferred `**DOCKER_TAG**`and click `**Build**`
+3. **Run the Pipeline**  
+   - Navigate to the newly created pipeline job in Jenkins.
+   - Click on **"Build with Parameters"**.
+   - Set the parameters for the pipeline:
+     - `DEPLOY_ENV`: Choose the deployment environment (`blue` or `green`).
+     - `DOCKER_TAG`: Specify the Docker image tag to use.
+     - `SWITCH_TRAFFIC`: Toggle the traffic switch (`true` or leave it untoggled if you don't want the traffic switched).
+   - Click **"Build"** to start the pipeline.
 
-3. **Monitor Execution**
-   - Select the running build to view **Console Output** for real-time logs.
+4. **Monitor the Pipeline Execution**  
+   - View the **console output** to monitor each stage of the pipeline.
+   - Confirm that each stage completes successfully.
+
+5. **Verify Deployment**  
+   - Use `kubectl` commands or a Kubernetes dashboard to verify the deployment:
+     - Check pods, services, and ingress resources in the namespace `webapps`.
+     - Confirm the traffic has been switched (if applicable).
    
-4. **Verify Key Stages**
-   - Each stage should execute sequentially; confirm that core stages complete without errors:
-     - `Clear Workspace`, `Git Checkout`, `Code Compile`, `Test`
-     - `Trivy FS Scan`, `SonarQube Analysis`, `Build`, `Publish Artifacts`
-     - `Docker Build and Tag`, `Docker Image Scan`, `Publish Docker Image`
-     - `Update Docker Tag in Manifest`, `Deploy to K8s-Cluster`, `Verify Deployment`
-
-5. **Deployment Confirmation**
+6. **Deployment Confirmation**
    - After the **Deploy to K8s-Cluster** stage, run:
      ```bash
      kubectl get pods
@@ -337,7 +393,7 @@ To execute the pipeline in Jenkins, follow these streamlined steps:
      ```
    - Check the **LoadBalancer** or **NodePort** to access your application.
 
-6. **Review Notifications**
+7. **Review Notifications**
    - The pipeline sends an email with the build status. Verify that notifications are correctly set up for alerts on build status.
    
 ---
