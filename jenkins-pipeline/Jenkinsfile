@@ -97,7 +97,7 @@ pipeline {
         stage('Deploy Trainbook Secret') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         sh "kubectl apply -f Manifest_Files/trainbook-secrets.yaml -n ${KUBE_NAMESPACE}"  
                     }
                 }
@@ -107,7 +107,7 @@ pipeline {
         stage('Deploy Trainbook Service') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         sh """ if ! kubectl get svc trainbook-service -n ${KUBE_NAMESPACE}; then
                                 kubectl apply -f Manifest_Files/trainbook-service.yaml -n ${KUBE_NAMESPACE}
                               fi
@@ -120,7 +120,7 @@ pipeline {
         stage('Deploy Trainbook Nginx Ingress') {
             steps {
                 script {
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         sh "kubectl apply -f Manifest_Files/trainbook-ingress.yaml -n ${KUBE_NAMESPACE}"  
                     }
                 }
@@ -137,7 +137,7 @@ pipeline {
                         deploymentFile = 'Manifest_Files/app-deployment-green.yaml'
                     }
 
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         sh "kubectl apply -f ${deploymentFile} -n ${KUBE_NAMESPACE}"
                     }
                 }
@@ -153,7 +153,7 @@ pipeline {
                     def newEnv = params.DEPLOY_ENV
 
                     // Always switch traffic based on DEPLOY_ENV
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         sh '''
                             kubectl patch service trainbook-service -p "{\\"spec\\": {\\"selector\\": {\\"app\\": \\"trainbook-app\\", \\"version\\": \\"''' + newEnv + '''\\"}}}" -n ${KUBE_NAMESPACE}
                         '''
@@ -167,7 +167,7 @@ pipeline {
             steps {
                 script {
                     def verifyEnv = params.DEPLOY_ENV
-                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster Server Endpoint URL') {
+                    withKubeConfig(caCertificate: '', clusterName: 'Add Your ClusterName', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'Add Your K8s Cluster API Server Endpoint URL') {
                         // Sleep for 30 seconds to ensure the deployment has time to stabilize before verification
                         sh '''
                            sleep 30
