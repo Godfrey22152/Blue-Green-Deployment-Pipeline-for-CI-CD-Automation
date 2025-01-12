@@ -27,10 +27,83 @@ This guide will walk you through setting up the Jenkins pipeline from scratch, i
 
 4. **[Kubernetes Cluster](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/README.md#cd--eks-cluster-setup)**:
    - A cluster set up with **[Service Account](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/Jenkins_ServiceAccount_RBAC_Scripts)** to allow Jenkins Access.
+   - Install Helm for installing Nginx ingress.
    - Install Nginx ingress controller.
-
+       
 ---
+## Complete Kubernetes Cluster Setup
 
+### install helm 
+   ```bash
+   curl -o /tmp/helm.tar.gz -LO https://get.helm.sh/helm-v3.10.1-linux-amd64.tar.gz
+   tar -C /tmp/ -zxvf /tmp/helm.tar.gz
+   mv /tmp/linux-amd64/helm /usr/local/bin/helm
+   chmod +x /usr/local/bin/helm
+   ```
+
+### Install Nginx ingress controller.
+   You can find the Kubernetes NGINX documentation **[here](https://kubernetes.github.io/ingress-nginx/)**
+   First thing we do is check the compatibility matrix to ensure we are deploying a compatible version of NGINX Ingress on our Kubernetes cluster.
+
+   The Documentation also has a link to the **[GitHub Repo](https://github.com/kubernetes/ingress-nginx/)** which has a compatibility matrix.
+
+ - **Get the installation YAML**
+   The controller ships as a `helm` chart, so we can grab version `v1.11.3` as per the compatibility matrix.
+
+   From our container we can do this:
+
+   ```bash
+   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+   helm search repo ingress-nginx --versions
+   ```
+
+   From the app version we select the version that matches the compatibility matrix.
+
+   ```bash
+   NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+   ingress-nginx/ingress-nginx     4.11.3          1.11.3          Ingress controller for Kubernetes using NGINX a...
+   ```
+   Now we can use helm to install the chart directly if we want.
+   Or we can use helm to grab the manifest and explore its content.
+   We can also add that manifest to our git repo if we are using a GitOps workflow to deploy it.
+
+   ```bash
+   CHART_VERSION="4.4.0"
+   APP_VERSION="1.5.1"
+
+   mkdir ./nginx-ingress-manifests
+
+   helm template nginx-ingress ingress-nginx \
+   --repo https://kubernetes.github.io/ingress-nginx \
+   --version ${CHART_VERSION} \
+   --namespace ingress-nginx \
+   --set controller.service.type=LoadBalancer \
+   > ./nginx-ingress-manifests/installation_nginx_ingress.${APP_VERSION}.yaml
+   ```
+ - **Deploy the Ingress controller**
+   ```bash
+   kubectl create namespace ingress-nginx
+   kubectl apply -f ./nginx-ingress-manifests/installation_nginx_ingress.${APP_VERSION}.yaml
+   ```
+
+ - **Check the installation**
+   ```bash
+   kubectl get pods -n ingress-nginx
+   ```
+   ```bash
+   NAME                                                          READY   STATUS    RESTARTS      AGE
+   pod/nginx-ingress-ingress-nginx-controller-6ffbff94df-td7pr   1/1     Running   0             5m
+   ```
+ - **Check the Nginx Ingress Service**
+
+   ```bash
+   kubectl get svc -n ingress-nginx
+   NAME                                               TYPE           CLUSTER-IP      EXTERNAL-IP      PORT(S)                      AGE
+   nginx-ingress-ingress-nginx-controller             LoadBalancer   10.105.156.69   XXXXXXXXXXXXXX   80:31507/TCP,443:31539/TCP   5m
+   nginx-ingress-ingress-nginx-controller-admission   ClusterIP      10.98.183.68    <none>           443/TCP                      5m
+   ```
+   
+---
 ## Accessing Jenkins and Initial Setup
 
 ### 1. Start Jenkins and Access the Web Interface
@@ -327,7 +400,7 @@ The pipeline includes an email notification step, sending a summary of the build
 Refer to the full pipeline code [here](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/blob/main/Jenkinsfile).
 
 ---
-### >NOTE: Pipeline Stage Code Generation using Pipeline Syntax
+### NOTE: Pipeline Stage Code Generation using Pipeline Syntax
 
 To generate code for each pipeline stage in Jenkins, use the **Pipeline Syntax** tool. This tool provides a user-friendly interface to create pipeline snippets for various steps, which you can then copy and paste into your pipeline script.
 
@@ -360,7 +433,7 @@ To execute the pipeline in Jenkins, follow these streamlined steps:
    - Check that credentials (`git-cred`, `sonar-token`, `docker-cred`, `k8-cred`, `email-cred`) are configured.
      
 2. **Ensure all Necessary Manifest Files are added and updated**  
-   - Ensure the Kubernetes manifest files are available in the `Manifest_Files` directory of the Git repository:
+   - Ensure the Kubernetes manifest files are available in the **Manifest_Files](https://github.com/Godfrey22152/Smart-Traffic-Switching-A-Blue-Green-Deployment-Solution/tree/main/Manifest_Files)** directory of the project repository:
      - `app-deployment-blue.yaml`
      - `app-deployment-green.yaml`
      - `trainbook-secrets.yaml`
@@ -372,8 +445,8 @@ To execute the pipeline in Jenkins, follow these streamlined steps:
    - Click on **"Build with Parameters"**.
    - Set the parameters for the pipeline:
      - `DEPLOY_ENV`: Choose the deployment environment (`blue` or `green`).
-     - `DOCKER_TAG`: Specify the Docker image tag to use.
-     - `SWITCH_TRAFFIC`: Toggle the traffic switch (`true` or leave it untoggled if you don't want the traffic switched).
+     - `DOCKER_TAG`: Specify the Docker image tag to use (`blue` or `green`).
+     - `SWITCH_TRAFFIC`: Toggle the traffic switch box to `true` or leave it unchecked if you don't want the traffic switched from the default `blue` environment.
    - Click **"Build"** to start the pipeline.
 
 4. **Monitor the Pipeline Execution**  
@@ -381,17 +454,29 @@ To execute the pipeline in Jenkins, follow these streamlined steps:
    - Confirm that each stage completes successfully.
 
 5. **Verify Deployment**  
-   - Use `kubectl` commands or a Kubernetes dashboard to verify the deployment:
-     - Check pods, services, and ingress resources in the namespace `webapps`.
+   - View **console build output** to verify the deployment:
+     - Check that pods, services, and ingress resources in the namespace `webapps` are deployed as specified in the pipeline.
      - Confirm the traffic has been switched (if applicable).
+     - If successfully deployed you should see output as shown below (For the `blue` environment):
+       
+       ```bash
+       + kubectl get pods -l version=blue -n webapps
+       NAME                                  READY   STATUS              RESTARTS   AGE
+       trainbook-app-blue-556b67bb58-vg8z7   0/1     ContainerCreating   0          19s
+       + kubectl get svc trainbook-service -n webapps
+       NAME                TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+       trainbook-service   ClusterIP   10.110.140.55   <none>        80/TCP    64s
+       + kubectl get ingress trinbook-ingress -n webapps
+       NAME               CLASS   HOSTS           ADDRESS          PORTS   AGE
+       trinbook-ingress   nginx   trainbook.com   XXXXXXXXXXXXXX   80      68s
+       ```
    
-6. **Deployment Confirmation**
-   - After the **Deploy to K8s-Cluster** stage, run:
-     ```bash
-     kubectl get pods
-     kubectl get svc
-     ```
-   - Check the **LoadBalancer** or **NodePort** to access your application.
+6. **Verify Pod Readiness**
+- Check that the `trainbook-app` pod in either the **blue** or `green` environment is running and ready:
+  ```bash
+  kubectl get pods -l version=blue -n webapps
+  kubectl get pods -l version=green -n webapps
+  ```  
 
 7. **Review Notifications**
    - The pipeline sends an email with the build status. Verify that notifications are correctly set up for alerts on build status.
